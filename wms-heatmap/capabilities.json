@@ -1,79 +1,144 @@
 {
-    "dataRoles": [
-        {
-            "displayName": "Category Data",
-            "name": "category",
-            "kind": "Grouping"
-        },
-        {
-            "displayName": "Measure Data",
-            "name": "measure",
-            "kind": "Measure"
-        }
-    ],
-    "objects": {
-        "dataPoint": {
-            "properties": {
-                "defaultColor": {
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "showAllDataPoints": {
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "fill": {
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fillRule": {
-                    "type": {
-                        "fill": {}
-                    }
-                },
-                 "fontSize": {
-                    "type": {
-                        "formatting": {
-                            "fontSize": true
-                        }
-                    }
-                }
-            }
-        }
+  "dataRoles": [
+    {
+      "name": "codendereco",
+      "kind": "Grouping",
+      "displayName": "Endereço WMS",
+      "description": "Campo cujo valor bate com o id dos shapes no SVG"
     },
-    "dataViewMappings": [
+    {
+      "name": "value",
+      "kind": "Measure",
+      "displayName": "Valor",
+      "description": "Medida numérica que define a intensidade da cor"
+    },
+    {
+      "name": "tooltips",
+      "kind": "GroupingOrMeasure",
+      "displayName": "Tooltips",
+      "description": "Campos extras exibidos no hover"
+    }
+  ],
+  "dataViewMappings": [
+    {
+      "conditions": [
         {
-            "categorical": {
-                "categories": {
-                    "for": {
-                        "in": "category"
-                    },
-                    "dataReductionAlgorithm": {
-                        "top": {}
-                    }
-                },
-                "values": {
-                    "select": [
-                        {
-                            "bind": {
-                                "to": "measure"
-                            }
-                        }
-                    ]
-                }
-            }
+          "codendereco": { "max": 1 },
+          "value": { "max": 1 }
         }
-    ],
-    "privileges": []
+      ],
+      "categorical": {
+        "categories": {
+          "for": { "in": "codendereco" },
+          "dataReductionAlgorithm": { "top": { "count": 10000 } }
+        },
+        "values": {
+          "select": [
+            { "bind": { "to": "value" } },
+            { "bind": { "to": "tooltips" } }
+          ]
+        }
+      }
+    }
+  ],
+  "objects": {
+    "mapSettings": {
+      "displayName": "Mapa SVG",
+      "properties": {
+        "svgContent": {
+          "type": { "text": true }
+        }
+      }
+    },
+    "colorScale": {
+      "displayName": "Escala de Cor",
+      "properties": {
+        "minColor": {
+          "displayName": "Cor mínima",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "maxColor": {
+          "displayName": "Cor máxima",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "noMatchColor": {
+          "displayName": "Cor sem match",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "invertScale": {
+          "displayName": "Inverter escala",
+          "type": { "bool": true }
+        }
+      }
+    },
+    "labels": {
+      "displayName": "Rótulos",
+      "properties": {
+        "show": {
+          "displayName": "Mostrar rótulos",
+          "type": { "bool": true }
+        },
+        "fontSize": {
+          "displayName": "Tamanho da fonte",
+          "type": { "numeric": true }
+        },
+        "fontColor": {
+          "displayName": "Cor da fonte",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "format": {
+          "displayName": "Formato numérico",
+          "type": {
+            "enumeration": [
+              { "value": "integer", "displayName": "Inteiro" },
+              { "value": "decimal", "displayName": "Decimal" },
+              { "value": "auto", "displayName": "Automático" }
+            ]
+          }
+        }
+      }
+    },
+    "legend": {
+      "displayName": "Legenda",
+      "properties": {
+        "show": {
+          "displayName": "Mostrar legenda",
+          "type": { "bool": true }
+        },
+        "position": {
+          "displayName": "Posição",
+          "type": {
+            "enumeration": [
+              { "value": "bottom", "displayName": "Inferior" },
+              { "value": "top", "displayName": "Superior" },
+              { "value": "right", "displayName": "Direita" }
+            ]
+          }
+        },
+        "title": {
+          "displayName": "Título",
+          "type": { "text": true }
+        }
+      }
+    },
+    "mapAppearance": {
+      "displayName": "Aparência do Mapa",
+      "properties": {
+        "noMatchOpacity": {
+          "displayName": "Opacidade sem dado (%)",
+          "type": { "numeric": true }
+        },
+        "showBorders": {
+          "displayName": "Bordas visíveis",
+          "type": { "bool": true }
+        },
+        "borderColor": {
+          "displayName": "Cor da borda",
+          "type": { "fill": { "solid": { "color": true } } }
+        }
+      }
+    }
+  },
+  "supportsHighlight": true,
+  "suppressDefaultTitle": true
 }
