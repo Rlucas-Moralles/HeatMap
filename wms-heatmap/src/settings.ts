@@ -25,7 +25,12 @@ export interface MapAppearanceSettings {
   heatOpacity: number;
   noMatchOpacity: number;
   showBorders: boolean;
-  borderColor: string;
+}
+
+export interface TracadoSettings {
+  show: boolean;
+  color: string;
+  width: number;
 }
 
 export interface VisualSettings {
@@ -34,6 +39,7 @@ export interface VisualSettings {
   labels: LabelSettings;
   legend: LegendSettings;
   mapAppearance: MapAppearanceSettings;
+  tracado: TracadoSettings;
 }
 
 function getColor(objects: powerbi.DataViewObjects | undefined, objectName: string, propertyName: string, defaultValue: string): string {
@@ -58,10 +64,10 @@ export function parseSettings(dataView: DataView): VisualSettings {
       invertScale: getValue<boolean>(objects, "colorScale", "invertScale", false),
     },
     labels: {
-      show: getValue<boolean>(objects, "labels", "show", true),
-      fontSize: getValue<number>(objects, "labels", "fontSize", 10),
-      fontColor: getColor(objects, "labels", "fontColor", "#ffffff"),
-      format: getValue<"integer" | "decimal" | "auto">(objects, "labels", "format", "integer"),
+      show: getValue<boolean>(objects, "visual", "show", true),
+      fontSize: getValue<number>(objects, "visual", "fontSize", 10),
+      fontColor: getColor(objects, "visual", "fontColor", "#000000"),
+      format: getValue<"integer" | "decimal" | "auto">(objects, "visual", "format", "integer"),
     },
     legend: {
       show: getValue<boolean>(objects, "legend", "show", true),
@@ -72,7 +78,11 @@ export function parseSettings(dataView: DataView): VisualSettings {
       heatOpacity: getValue<number>(objects, "mapAppearance", "heatOpacity", 85),
       noMatchOpacity: getValue<number>(objects, "mapAppearance", "noMatchOpacity", 20),
       showBorders: getValue<boolean>(objects, "mapAppearance", "showBorders", true),
-      borderColor: getColor(objects, "mapAppearance", "borderColor", "#ffffff"),
+    },
+    tracado: {
+      show: getValue<boolean>(objects, "tracado", "show", true),
+      color: getColor(objects, "tracado", "color", "#888888"),
+      width: getValue<number>(objects, "tracado", "width", 1),
     },
   };
 }

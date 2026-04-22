@@ -40,15 +40,18 @@ export class SvgRenderer {
     const injectedSvg = container.querySelector("svg")!;
     const shapes: RenderedShape[] = [];
     const { noMatchColor } = settings.colorScale;
-    const { heatOpacity, noMatchOpacity, showBorders, borderColor } = settings.mapAppearance;
+    const { heatOpacity, noMatchOpacity } = settings.mapAppearance;
+    const { show: tracadoShow, color: tracadoColor, width: tracadoWidth } = settings.tracado;
 
     injectedSvg.querySelectorAll<SVGElement>("[id]").forEach((el) => {
       const id = el.getAttribute("id");
       if (!id || id === "Map") return;
 
-      if (showBorders) {
-        el.style.stroke = borderColor;
-        el.style.strokeWidth = "1px";
+      if (tracadoShow) {
+        el.style.stroke = tracadoColor;
+        el.style.strokeWidth = `${tracadoWidth}px`;
+      } else {
+        el.style.stroke = "none";
       }
 
       if (dataMap.has(id)) {

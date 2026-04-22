@@ -71,8 +71,8 @@
         }
       }
     },
-    "labels": {
-      "displayName": "Rótulos",
+    "visual": {
+      "displayName": "Visual",
       "properties": {
         "show": {
           "displayName": "Mostrar rótulos",
@@ -95,6 +95,23 @@
               { "value": "auto", "displayName": "Automático" }
             ]
           }
+        }
+      }
+    },
+    "tracado": {
+      "displayName": "Traçado",
+      "properties": {
+        "show": {
+          "displayName": "Mostrar traçado",
+          "type": { "bool": true }
+        },
+        "color": {
+          "displayName": "Cor do traçado",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "width": {
+          "displayName": "Espessura (px)",
+          "type": { "numeric": true }
         }
       }
     },
@@ -135,10 +152,6 @@
         "showBorders": {
           "displayName": "Bordas visíveis",
           "type": { "bool": true }
-        },
-        "borderColor": {
-          "displayName": "Cor da borda",
-          "type": { "fill": { "solid": { "color": true } } }
         }
       }
     }
