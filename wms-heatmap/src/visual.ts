@@ -3,7 +3,10 @@ import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructor
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
 
+import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
+import { WmsFormattingSettingsModel } from "./formattingSettings";
 import { parseSettings } from "./settings";
+import { VisualSettings } from "./settings";
 import { DataMapper } from "./dataMapper";
 import { ColorScale } from "./colorScale";
 import { MapLoader } from "./mapLoader";
@@ -18,6 +21,9 @@ export class Visual implements IVisual {
   private container: HTMLElement;
   private selectionManager: powerbi.extensibility.ISelectionManager;
 
+  private formattingSettingsService: FormattingSettingsService;
+  private formattingSettings: WmsFormattingSettingsModel;
+
   private dataMapper: DataMapper;
   private mapLoader: MapLoader;
   private svgRenderer: SvgRenderer;
@@ -29,6 +35,9 @@ export class Visual implements IVisual {
     this.container = options.element;
     this.container.className = "wms-heatmap";
     this.selectionManager = this.host.createSelectionManager();
+
+    this.formattingSettingsService = new FormattingSettingsService();
+    this.formattingSettings = new WmsFormattingSettingsModel();
 
     this.dataMapper = new DataMapper();
     this.mapLoader = new MapLoader(this.host);
@@ -45,7 +54,12 @@ export class Visual implements IVisual {
       return;
     }
 
-    const settings = parseSettings(dataView);
+    this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(
+      WmsFormattingSettingsModel,
+      dataView
+    );
+
+    const settings = this.buildSettings(dataView);
 
     if (!settings.svgContent) {
       this.mapLoader.render(this.container);
@@ -113,6 +127,45 @@ export class Visual implements IVisual {
     this.container.addEventListener("click", () => {
       this.selectionManager.clear();
     });
+  }
+
+  public getFormattingModel(): powerbi.visuals.FormattingModel {
+    return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
+  }
+
+  private buildSettings(dataView: powerbi.DataView): VisualSettings {
+    const base = parseSettings(dataView);
+    const fs = this.formattingSettings;
+    return {
+      svgContent: base.svgContent,
+      colorScale: {
+        minColor: fs.colorScaleCard.minColor.value.value,
+        maxColor: fs.colorScaleCard.maxColor.value.value,
+        noMatchColor: fs.colorScaleCard.noMatchColor.value.value,
+        invertScale: fs.colorScaleCard.invertScale.value,
+      },
+      labels: {
+        show: fs.visualCard.show.value,
+        fontSize: fs.visualCard.fontSize.value,
+        fontColor: fs.visualCard.fontColor.value.value,
+        format: fs.visualCard.format.value.value as "integer" | "decimal" | "auto",
+      },
+      legend: {
+        show: fs.legendCard.show.value,
+        position: fs.legendCard.position.value.value as "bottom" | "top" | "right",
+        title: "",
+      },
+      mapAppearance: {
+        heatOpacity: fs.mapAppearanceCard.heatOpacity.value,
+        noMatchOpacity: fs.mapAppearanceCard.noMatchOpacity.value,
+        showBorders: fs.tracadoCard.show.value,
+      },
+      tracado: {
+        show: fs.tracadoCard.show.value,
+        color: fs.tracadoCard.color.value.value,
+        width: fs.tracadoCard.width.value,
+      },
+    };
   }
 
   private getIndexForId(dataView: powerbi.DataView, id: string): number {
