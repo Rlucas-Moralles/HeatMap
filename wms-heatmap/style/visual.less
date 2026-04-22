@@ -1,9 +1,113 @@
-p {
-    font-size: 20px;
-    font-weight: bold;
-    em {
-        background: yellow;
-        padding: 5px;
-        
+.wms-heatmap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: "Segoe UI", sans-serif;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  .wms-row {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+  }
+
+  .map-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+
+    svg {
+      width: 100%;
+      height: 100%;
     }
+  }
+
+  .legend-container {
+    flex-shrink: 0;
+  }
+
+  .wms-legend {
+    padding: 4px 8px;
+
+    &--bottom, &--top {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &--right {
+      display: flex;
+      flex-direction: column;
+      width: 40px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .legend-title {
+      font-size: 11px;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .legend-bar {
+      height: 12px;
+      width: 100%;
+      min-width: 80px;
+      border-radius: 2px;
+    }
+
+    .legend-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #555;
+      margin-top: 2px;
+    }
+  }
+
+  .add-map-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .add-map-btn {
+    background: #217346;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+
+    &:hover {
+      background: #1a5c38;
+    }
+  }
+
+  .add-map-hint {
+    font-size: 12px;
+    color: #888;
+    margin: 0;
+  }
+
+  .wms-error {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c00000;
+    font-size: 13px;
+    text-align: center;
+    padding: 16px;
+    box-sizing: border-box;
+  }
 }
