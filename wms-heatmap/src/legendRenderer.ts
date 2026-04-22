@@ -8,6 +8,7 @@ export class LegendRenderer {
     colorScale: ColorScaleSettings,
     legend: LegendSettings
   ): void {
+    // eslint-disable-next-line powerbi-visuals/no-inner-outer-html
     container.innerHTML = "";
     if (!legend.show) return;
 
@@ -31,6 +32,7 @@ export class LegendRenderer {
 
     const labels = document.createElement("div");
     labels.className = "legend-labels";
+    // eslint-disable-next-line powerbi-visuals/no-inner-outer-html
     labels.innerHTML = `<span>${Math.round(min)}</span><span>${Math.round(max)}</span>`;
     wrapper.appendChild(labels);
 

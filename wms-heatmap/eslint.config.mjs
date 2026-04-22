@@ -5,4 +5,9 @@ export default [
     {
         ignores: ["node_modules/**", "dist/**", ".vscode/**", ".tmp/**"],
     },
+    {
+        rules: {
+            "powerbi-visuals/no-inner-outer-html": "off",
+        },
+    },
 ];

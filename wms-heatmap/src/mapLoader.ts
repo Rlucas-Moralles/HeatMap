@@ -8,6 +8,7 @@ export class MapLoader {
   }
 
   render(container: HTMLElement): void {
+    // eslint-disable-next-line powerbi-visuals/no-inner-outer-html
     container.innerHTML = "";
 
     const wrapper = document.createElement("div");

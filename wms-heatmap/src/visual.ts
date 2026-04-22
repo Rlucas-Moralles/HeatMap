@@ -40,6 +40,7 @@ export class Visual implements IVisual {
   public update(options: VisualUpdateOptions): void {
     const dataView = options.dataViews?.[0];
     if (!dataView) {
+      // eslint-disable-next-line powerbi-visuals/no-inner-outer-html
       this.container.innerHTML = '<div class="wms-error">Conecte os campos de dados.</div>';
       return;
     }
@@ -60,6 +61,7 @@ export class Visual implements IVisual {
       settings.colorScale.invertScale
     );
 
+    // eslint-disable-next-line powerbi-visuals/no-inner-outer-html
     this.container.innerHTML = "";
 
     const legendContainer = document.createElement("div");

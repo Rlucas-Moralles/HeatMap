@@ -15,6 +15,7 @@ export class SvgRenderer {
     colorScale: ColorScale,
     settings: VisualSettings
   ): RenderedShape[] {
+    // eslint-disable-next-line powerbi-visuals/no-inner-outer-html
     container.innerHTML = "";
 
     const parser = new DOMParser();
@@ -99,6 +100,7 @@ export class SvgRenderer {
   }
 
   private renderError(container: HTMLElement, message: string): void {
+    // eslint-disable-next-line powerbi-visuals/no-inner-outer-html
     container.innerHTML = `<div class="wms-error">${message}</div>`;
   }
 }
