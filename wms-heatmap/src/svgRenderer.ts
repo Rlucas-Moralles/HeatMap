@@ -40,7 +40,7 @@ export class SvgRenderer {
     const injectedSvg = container.querySelector("svg")!;
     const shapes: RenderedShape[] = [];
     const { noMatchColor } = settings.colorScale;
-    const { noMatchOpacity, showBorders, borderColor } = settings.mapAppearance;
+    const { heatOpacity, noMatchOpacity, showBorders, borderColor } = settings.mapAppearance;
 
     injectedSvg.querySelectorAll<SVGElement>("[id]").forEach((el) => {
       const id = el.getAttribute("id");
@@ -54,7 +54,7 @@ export class SvgRenderer {
       if (dataMap.has(id)) {
         const value = dataMap.get(id)!;
         el.style.fill = colorScale.getColor(value);
-        el.style.opacity = "1";
+        el.style.opacity = String(heatOpacity / 100);
         shapes.push({ element: el, id, value });
       } else {
         el.style.fill = noMatchColor;

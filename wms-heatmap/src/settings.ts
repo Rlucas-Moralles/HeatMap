@@ -22,6 +22,7 @@ export interface LegendSettings {
 }
 
 export interface MapAppearanceSettings {
+  heatOpacity: number;
   noMatchOpacity: number;
   showBorders: boolean;
   borderColor: string;
@@ -51,7 +52,7 @@ export function parseSettings(dataView: DataView): VisualSettings {
   return {
     svgContent: getValue<string>(objects, "mapSettings", "svgContent", ""),
     colorScale: {
-      minColor: getColor(objects, "colorScale", "minColor", "#d4e9ff"),
+      minColor: getColor(objects, "colorScale", "minColor", "#ffffcc"),
       maxColor: getColor(objects, "colorScale", "maxColor", "#c00000"),
       noMatchColor: getColor(objects, "colorScale", "noMatchColor", "#cccccc"),
       invertScale: getValue<boolean>(objects, "colorScale", "invertScale", false),
@@ -68,7 +69,8 @@ export function parseSettings(dataView: DataView): VisualSettings {
       title: getValue<string>(objects, "legend", "title", ""),
     },
     mapAppearance: {
-      noMatchOpacity: getValue<number>(objects, "mapAppearance", "noMatchOpacity", 30),
+      heatOpacity: getValue<number>(objects, "mapAppearance", "heatOpacity", 85),
+      noMatchOpacity: getValue<number>(objects, "mapAppearance", "noMatchOpacity", 20),
       showBorders: getValue<boolean>(objects, "mapAppearance", "showBorders", true),
       borderColor: getColor(objects, "mapAppearance", "borderColor", "#ffffff"),
     },

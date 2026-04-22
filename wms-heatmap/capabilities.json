@@ -124,6 +124,10 @@
     "mapAppearance": {
       "displayName": "Aparência do Mapa",
       "properties": {
+        "heatOpacity": {
+          "displayName": "Intensidade do calor (%)",
+          "type": { "numeric": true }
+        },
         "noMatchOpacity": {
           "displayName": "Opacidade sem dado (%)",
           "type": { "numeric": true }
