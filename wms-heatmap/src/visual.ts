@@ -1,77 +1,120 @@
-/*
-*  Power BI Visual CLI
-*
-*  Copyright (c) Microsoft Corporation
-*  All rights reserved.
-*  MIT License
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
-*
-*  The above copyright notice and this permission notice shall be included in
-*  all copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-*  THE SOFTWARE.
-*/
-"use strict";
-
 import powerbi from "powerbi-visuals-api";
-import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
-import "./../style/visual.less";
-
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
 
-import { VisualFormattingSettingsModel } from "./settings";
+import { parseSettings } from "./settings";
+import { DataMapper } from "./dataMapper";
+import { ColorScale } from "./colorScale";
+import { MapLoader } from "./mapLoader";
+import { SvgRenderer } from "./svgRenderer";
+import { TooltipHandler } from "./tooltipHandler";
+import { LegendRenderer } from "./legendRenderer";
+
+import "./../style/visual.less";
 
 export class Visual implements IVisual {
-    private target: HTMLElement;
-    private updateCount: number;
-    private textNode: Text;
-    private formattingSettings: VisualFormattingSettingsModel;
-    private formattingSettingsService: FormattingSettingsService;
+  private host: powerbi.extensibility.visual.IVisualHost;
+  private container: HTMLElement;
+  private selectionManager: powerbi.extensibility.ISelectionManager;
 
-    constructor(options: VisualConstructorOptions) {
-        console.log('Visual constructor', options);
-        this.formattingSettingsService = new FormattingSettingsService();
-        this.target = options.element;
-        this.updateCount = 0;
-        if (document) {
-            const new_p: HTMLElement = document.createElement("p");
-            new_p.appendChild(document.createTextNode("Update count:"));
-            const new_em: HTMLElement = document.createElement("em");
-            this.textNode = document.createTextNode(this.updateCount.toString());
-            new_em.appendChild(this.textNode);
-            new_p.appendChild(new_em);
-            this.target.appendChild(new_p);
-        }
+  private dataMapper: DataMapper;
+  private mapLoader: MapLoader;
+  private svgRenderer: SvgRenderer;
+  private tooltipHandler: TooltipHandler;
+  private legendRenderer: LegendRenderer;
+
+  constructor(options: VisualConstructorOptions) {
+    this.host = options.host;
+    this.container = options.element;
+    this.container.className = "wms-heatmap";
+    this.selectionManager = this.host.createSelectionManager();
+
+    this.dataMapper = new DataMapper();
+    this.mapLoader = new MapLoader(this.host);
+    this.svgRenderer = new SvgRenderer();
+    this.tooltipHandler = new TooltipHandler(this.host.tooltipService);
+    this.legendRenderer = new LegendRenderer();
+  }
+
+  public update(options: VisualUpdateOptions): void {
+    const dataView = options.dataViews?.[0];
+    if (!dataView) {
+      this.container.innerHTML = '<div class="wms-error">Conecte os campos de dados.</div>';
+      return;
     }
 
-    public update(options: VisualUpdateOptions) {
-        this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(VisualFormattingSettingsModel, options.dataViews[0]);
+    const settings = parseSettings(dataView);
 
-        console.log('Visual update', options);
-        if (this.textNode) {
-            this.textNode.textContent = (this.updateCount++).toString();
-        }
+    if (!settings.svgContent) {
+      this.mapLoader.render(this.container);
+      return;
     }
 
-    /**
-     * Returns properties pane formatting model content hierarchies, properties and latest formatting values, Then populate properties pane.
-     * This method is called once every time we open properties pane or when the user edit any format property. 
-     */
-    public getFormattingModel(): powerbi.visuals.FormattingModel {
-        return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
+    const { dataMap, tooltipMap, min, max } = this.dataMapper.process(dataView);
+    const colorScale = new ColorScale(
+      min,
+      max,
+      settings.colorScale.minColor,
+      settings.colorScale.maxColor,
+      settings.colorScale.invertScale
+    );
+
+    this.container.innerHTML = "";
+
+    const legendContainer = document.createElement("div");
+    legendContainer.className = "legend-container";
+
+    const mapContainer = document.createElement("div");
+    mapContainer.className = "map-container";
+
+    if (settings.legend.position === "top") {
+      this.container.appendChild(legendContainer);
+      this.container.appendChild(mapContainer);
+    } else if (settings.legend.position === "right") {
+      const row = document.createElement("div");
+      row.className = "wms-row";
+      row.appendChild(mapContainer);
+      row.appendChild(legendContainer);
+      this.container.appendChild(row);
+    } else {
+      this.container.appendChild(mapContainer);
+      this.container.appendChild(legendContainer);
     }
+
+    const shapes = this.svgRenderer.render(
+      mapContainer,
+      settings.svgContent,
+      dataMap,
+      colorScale,
+      settings
+    );
+
+    this.tooltipHandler.bind(shapes, tooltipMap);
+    this.legendRenderer.render(legendContainer, min, max, settings.colorScale, settings.legend);
+
+    shapes.forEach(({ element, id }) => {
+      const index = this.getIndexForId(dataView, id);
+      if (index < 0) return;
+
+      const identity = this.host.createSelectionIdBuilder()
+        .withCategory(dataView.categorical!.categories[0], index)
+        .createSelectionId();
+
+      element.style.cursor = "pointer";
+      element.addEventListener("click", (e: MouseEvent) => {
+        e.stopPropagation();
+        this.selectionManager.select(identity, e.ctrlKey);
+      });
+    });
+
+    this.container.addEventListener("click", () => {
+      this.selectionManager.clear();
+    });
+  }
+
+  private getIndexForId(dataView: powerbi.DataView, id: string): number {
+    const cats = dataView.categorical?.categories?.[0]?.values ?? [];
+    return cats.findIndex((v) => String(v) === id);
+  }
 }
