@@ -1,83 +1,76 @@
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
+import powerbi from "powerbi-visuals-api";
+import DataView = powerbi.DataView;
 
-"use strict";
-
-import { formattingSettings } from "powerbi-visuals-utils-formattingmodel";
-
-import FormattingSettingsCard = formattingSettings.SimpleCard;
-import FormattingSettingsSlice = formattingSettings.Slice;
-import FormattingSettingsModel = formattingSettings.Model;
-
-/**
- * Data Point Formatting Card
- */
-class DataPointCardSettings extends FormattingSettingsCard {
-    defaultColor = new formattingSettings.ColorPicker({
-        name: "defaultColor",
-        displayName: "Default color",
-        value: { value: "" }
-    });
-
-    showAllDataPoints = new formattingSettings.ToggleSwitch({
-        name: "showAllDataPoints",
-        displayName: "Show all",
-        value: true
-    });
-
-    fill = new formattingSettings.ColorPicker({
-        name: "fill",
-        displayName: "Fill",
-        value: { value: "" }
-    });
-
-    fillRule = new formattingSettings.ColorPicker({
-        name: "fillRule",
-        displayName: "Color saturation",
-        value: { value: "" }
-    });
-
-    fontSize = new formattingSettings.NumUpDown({
-        name: "fontSize",
-        displayName: "Text Size",
-        value: 12
-    });
-
-    name: string = "dataPoint";
-    displayName: string = "Data colors";
-    slices: Array<FormattingSettingsSlice> = [this.defaultColor, this.showAllDataPoints, this.fill, this.fillRule, this.fontSize];
+export interface ColorScaleSettings {
+  minColor: string;
+  maxColor: string;
+  noMatchColor: string;
+  invertScale: boolean;
 }
 
-/**
-* visual settings model class
-*
-*/
-export class VisualFormattingSettingsModel extends FormattingSettingsModel {
-    // Create formatting settings model formatting cards
-    dataPointCard = new DataPointCardSettings();
+export interface LabelSettings {
+  show: boolean;
+  fontSize: number;
+  fontColor: string;
+  format: "integer" | "decimal" | "auto";
+}
 
-    cards = [this.dataPointCard];
+export interface LegendSettings {
+  show: boolean;
+  position: "bottom" | "top" | "right";
+  title: string;
+}
+
+export interface MapAppearanceSettings {
+  noMatchOpacity: number;
+  showBorders: boolean;
+  borderColor: string;
+}
+
+export interface VisualSettings {
+  svgContent: string;
+  colorScale: ColorScaleSettings;
+  labels: LabelSettings;
+  legend: LegendSettings;
+  mapAppearance: MapAppearanceSettings;
+}
+
+function getColor(objects: powerbi.DataViewObjects | undefined, objectName: string, propertyName: string, defaultValue: string): string {
+  const obj = objects?.[objectName]?.[propertyName] as { solid?: { color?: string } } | undefined;
+  return obj?.solid?.color ?? defaultValue;
+}
+
+function getValue<T>(objects: powerbi.DataViewObjects | undefined, objectName: string, propertyName: string, defaultValue: T): T {
+  const obj = objects?.[objectName]?.[propertyName];
+  return obj !== undefined && obj !== null ? (obj as T) : defaultValue;
+}
+
+export function parseSettings(dataView: DataView): VisualSettings {
+  const objects = dataView.metadata?.objects;
+
+  return {
+    svgContent: getValue<string>(objects, "mapSettings", "svgContent", ""),
+    colorScale: {
+      minColor: getColor(objects, "colorScale", "minColor", "#d4e9ff"),
+      maxColor: getColor(objects, "colorScale", "maxColor", "#c00000"),
+      noMatchColor: getColor(objects, "colorScale", "noMatchColor", "#cccccc"),
+      invertScale: getValue<boolean>(objects, "colorScale", "invertScale", false),
+    },
+    labels: {
+      show: getValue<boolean>(objects, "labels", "show", true),
+      fontSize: getValue<number>(objects, "labels", "fontSize", 10),
+      fontColor: getColor(objects, "labels", "fontColor", "#ffffff"),
+      format: getValue<"integer" | "decimal" | "auto">(objects, "labels", "format", "integer"),
+    },
+    legend: {
+      show: getValue<boolean>(objects, "legend", "show", true),
+      position: getValue<"bottom" | "top" | "right">(objects, "legend", "position", "bottom"),
+      title: getValue<string>(objects, "legend", "title", ""),
+    },
+    mapAppearance: {
+      noMatchOpacity: getValue<number>(objects, "mapAppearance", "noMatchOpacity", 30),
+      showBorders: getValue<boolean>(objects, "mapAppearance", "showBorders", true),
+      borderColor: getColor(objects, "mapAppearance", "borderColor", "#ffffff"),
+    },
+  };
 }
