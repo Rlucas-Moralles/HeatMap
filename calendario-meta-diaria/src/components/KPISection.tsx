@@ -52,7 +52,7 @@ interface Props {
 export const KPISection: React.FC<Props> = ({ summary, settings }) => {
   const { thresholds } = settings;
   const kpiBg = getKpiBg(summary.pctAcum, thresholds.thresholdOk, thresholds.thresholdWarn);
-  const kpiOnDark = summary.pctAcum !== null;
+  const kpiOnDark = summary.diasRealizados > 0;
 
   const gapColor =
     summary.gapMes >= 0
