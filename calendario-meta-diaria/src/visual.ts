@@ -1,77 +1,84 @@
-/*
-*  Power BI Visual CLI
-*
-*  Copyright (c) Microsoft Corporation
-*  All rights reserved.
-*  MIT License
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
-*
-*  The above copyright notice and this permission notice shall be included in
-*  all copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-*  THE SOFTWARE.
-*/
-"use strict";
-
 import powerbi from "powerbi-visuals-api";
-import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
-import "./../style/visual.less";
-
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
 
-import { VisualFormattingSettingsModel } from "./settings";
+import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
+import { CalendarioFormattingSettingsModel } from "./formattingSettings";
+import { VisualSettings } from "./settings";
+import { DataMapper } from "./dataMapper";
+import { CalendarRenderer } from "./components/CalendarRenderer";
+
+import React from "react";
+import ReactDOM from "react-dom";
+import "./../style/visual.less";
 
 export class Visual implements IVisual {
-    private target: HTMLElement;
-    private updateCount: number;
-    private textNode: Text;
-    private formattingSettings: VisualFormattingSettingsModel;
-    private formattingSettingsService: FormattingSettingsService;
+  private host: powerbi.extensibility.visual.IVisualHost;
+  private container: HTMLElement;
+  private formattingSettingsService: FormattingSettingsService;
+  private formattingSettings: CalendarioFormattingSettingsModel;
+  private dataMapper: DataMapper;
 
-    constructor(options: VisualConstructorOptions) {
-        console.log('Visual constructor', options);
-        this.formattingSettingsService = new FormattingSettingsService();
-        this.target = options.element;
-        this.updateCount = 0;
-        if (document) {
-            const new_p: HTMLElement = document.createElement("p");
-            new_p.appendChild(document.createTextNode("Update count:"));
-            const new_em: HTMLElement = document.createElement("em");
-            this.textNode = document.createTextNode(this.updateCount.toString());
-            new_em.appendChild(this.textNode);
-            new_p.appendChild(new_em);
-            this.target.appendChild(new_p);
-        }
+  constructor(options: VisualConstructorOptions) {
+    this.host = options.host;
+    this.container = options.element;
+    this.container.className = "calendario-meta";
+    this.formattingSettingsService = new FormattingSettingsService();
+    this.formattingSettings = new CalendarioFormattingSettingsModel();
+    this.dataMapper = new DataMapper();
+  }
+
+  public update(options: VisualUpdateOptions): void {
+    const dataView = options.dataViews?.[0];
+
+    if (!dataView) {
+      ReactDOM.render(
+        React.createElement("div", { className: "cal-error" }, "Conecte os campos de dados."),
+        this.container
+      );
+      return;
     }
 
-    public update(options: VisualUpdateOptions) {
-        this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(VisualFormattingSettingsModel, options.dataViews[0]);
+    this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(
+      CalendarioFormattingSettingsModel,
+      dataView
+    );
 
-        console.log('Visual update', options);
-        if (this.textNode) {
-            this.textNode.textContent = (this.updateCount++).toString();
-        }
-    }
+    const settings = this.buildSettings();
+    const { days, summary, weeks } = this.dataMapper.process(dataView);
 
-    /**
-     * Returns properties pane formatting model content hierarchies, properties and latest formatting values, Then populate properties pane.
-     * This method is called once every time we open properties pane or when the user edit any format property. 
-     */
-    public getFormattingModel(): powerbi.visuals.FormattingModel {
-        return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
-    }
+    ReactDOM.render(
+      React.createElement(CalendarRenderer, { days, summary, weeks, settings }),
+      this.container
+    );
+  }
+
+  public getFormattingModel(): powerbi.visuals.FormattingModel {
+    return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
+  }
+
+  private buildSettings(): VisualSettings {
+    const fs = this.formattingSettings;
+    return {
+      thresholds: {
+        thresholdOk: fs.thresholdsCard.thresholdOk.value,
+        thresholdWarn: fs.thresholdsCard.thresholdWarn.value,
+      },
+      colors: {
+        colorOk: fs.colorsCard.colorOk.value.value,
+        colorWarn: fs.colorsCard.colorWarn.value.value,
+        colorBad: fs.colorsCard.colorBad.value.value,
+      },
+      typography: {
+        valueFontSize: fs.typographyCard.valueFontSize.value,
+        cellFontSize: fs.typographyCard.cellFontSize.value,
+      },
+      display: {
+        showKpiCards: fs.displayCard.showKpiCards.value,
+        showBorders: fs.displayCard.showBorders.value,
+        highlightToday: fs.displayCard.highlightToday.value,
+      },
+    };
+  }
 }
