@@ -1,79 +1,80 @@
 {
-    "dataRoles": [
-        {
-            "displayName": "Category Data",
-            "name": "category",
-            "kind": "Grouping"
-        },
-        {
-            "displayName": "Measure Data",
-            "name": "measure",
-            "kind": "Measure"
-        }
-    ],
-    "objects": {
-        "dataPoint": {
-            "properties": {
-                "defaultColor": {
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "showAllDataPoints": {
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "fill": {
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fillRule": {
-                    "type": {
-                        "fill": {}
-                    }
-                },
-                 "fontSize": {
-                    "type": {
-                        "formatting": {
-                            "fontSize": true
-                        }
-                    }
-                }
-            }
-        }
+  "dataRoles": [
+    {
+      "name": "data",
+      "kind": "Grouping",
+      "displayName": "Data",
+      "description": "Campo de data — um registro por dia"
     },
-    "dataViewMappings": [
+    {
+      "name": "faturado",
+      "kind": "Measure",
+      "displayName": "Faturado",
+      "description": "Valor realizado do dia"
+    },
+    {
+      "name": "objetivo",
+      "kind": "Measure",
+      "displayName": "Objetivo",
+      "description": "Meta do dia"
+    }
+  ],
+  "dataViewMappings": [
+    {
+      "conditions": [
         {
-            "categorical": {
-                "categories": {
-                    "for": {
-                        "in": "category"
-                    },
-                    "dataReductionAlgorithm": {
-                        "top": {}
-                    }
-                },
-                "values": {
-                    "select": [
-                        {
-                            "bind": {
-                                "to": "measure"
-                            }
-                        }
-                    ]
-                }
-            }
+          "data": { "max": 1 },
+          "faturado": { "max": 1 },
+          "objetivo": { "max": 1 }
         }
-    ],
-    "privileges": []
+      ],
+      "categorical": {
+        "categories": {
+          "for": { "in": "data" },
+          "dataReductionAlgorithm": { "top": { "count": 500 } }
+        },
+        "values": {
+          "select": [
+            { "bind": { "to": "faturado" } },
+            { "bind": { "to": "objetivo" } }
+          ]
+        }
+      }
+    }
+  ],
+  "objects": {
+    "thresholds": {
+      "displayName": "Thresholds",
+      "properties": {
+        "thresholdOk":   { "displayName": "% Bom (≥)",    "type": { "numeric": true } },
+        "thresholdWarn": { "displayName": "% Alerta (≥)", "type": { "numeric": true } }
+      }
+    },
+    "colors": {
+      "displayName": "Cores",
+      "properties": {
+        "colorOk":   { "displayName": "Cor OK",    "type": { "fill": { "solid": { "color": true } } } },
+        "colorWarn": { "displayName": "Cor Alerta","type": { "fill": { "solid": { "color": true } } } },
+        "colorBad":  { "displayName": "Cor Ruim",  "type": { "fill": { "solid": { "color": true } } } }
+      }
+    },
+    "typography": {
+      "displayName": "Tipografia",
+      "properties": {
+        "valueFontSize": { "displayName": "Tamanho valor (px)",  "type": { "numeric": true } },
+        "cellFontSize":  { "displayName": "Tamanho célula (px)", "type": { "numeric": true } }
+      }
+    },
+    "display": {
+      "displayName": "Exibição",
+      "properties": {
+        "showKpiCards":   { "displayName": "Mostrar KPI cards", "type": { "bool": true } },
+        "showBorders":    { "displayName": "Mostrar bordas",    "type": { "bool": true } },
+        "highlightToday": { "displayName": "Destacar hoje",     "type": { "bool": true } }
+      }
+    }
+  },
+  "supportsHighlight": false,
+  "suppressDefaultTitle": true,
+  "privileges": []
 }
