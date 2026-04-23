@@ -1,0 +1,20 @@
+{
+  "name": "Meta Diaria",
+  "dataColors": [
+    "#16A34A", "#D97706", "#DC2626",
+    "#1A1A1A", "#6B6B68", "#9A9A95"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#1A1A1A",
+  "tableAccent": "#555555",
+  "good": "#16A34A",
+  "neutral": "#D97706",
+  "bad": "#DC2626",
+  "textClasses": {
+    "title":      { "fontFace": "Segoe UI", "fontSize": 26, "color": "#1A1A1A" },
+    "header":     { "fontFace": "Segoe UI Semibold", "fontSize": 14, "color": "#1A1A1A" },
+    "label":      { "fontFace": "Segoe UI", "fontSize": 11, "color": "#6B6B68" },
+    "callout":    { "fontFace": "Segoe UI Semibold", "fontSize": 30, "color": "#1A1A1A" },
+    "smallLabel": { "fontFace": "Segoe UI", "fontSize": 10, "color": "#9A9A95" }
+  }
+}

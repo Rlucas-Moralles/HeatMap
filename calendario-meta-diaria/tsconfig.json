@@ -11,7 +11,9 @@
         "lib": [
             "es2022",
             "dom"
-        ]
+        ],
+        "jsx": "react",
+        "allowSyntheticDefaultImports": true
     },
     "files": [
         "./src/visual.ts"
